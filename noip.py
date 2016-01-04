@@ -5,14 +5,21 @@ import json
 import sys
 import urllib.parse
 
+client_name = 'RobertBarnesNoIpUpdater'
+client_version = '0.0.1'
+client_email = 'robertbarnes1981@googlemail.com'
+
+print(client_name)
+print(client_version)
+
 messages = {
-    'good': [True, 'DNS hostname update successful. Followed by a space and the IP address it was updated to.'],
-    'nochg': [True, 'IP address is current, no update performed. Followed by a space and the IP address that it is currently set to.'],
-    'nohost': [False, 'Hostname supplied does not exist under specified account, client exit and require user to enter new login credentials before performing an additional request.'],
-    'badauth': [False, 'Invalid username password combination'],
-    'badagent': [False, 'Client disabled. Client should exit and not perform any more updates without user intervention.'],
-    '!donator': [False, 'An update request was sent including a feature that is not available to that particular user such as offline options.'],
-    'abuse': [False, 'Username is blocked due to abuse. Either for not following our update specifications or disabled due to violation of the No-IP terms of service. Our terms of service can be viewed here. Client should stop sending updates.'],
+    'good': [True, 'DNS hostname update successful.'],
+    'nochg': [True, 'IP address is current, no update performed.'],
+    'nohost': [False, 'Hostname supplied does not exist under specified account.'],
+    'badauth': [False, 'Invalid username password combination.'],
+    'badagent': [False, 'Client disabled.'],
+    '!donator': [False, 'An update request was sent including a feature that is not available to the specified user.'],
+    'abuse': [False, 'Username is blocked due to abuse. Either for not following our update specifications or disabled due to violation of the No-IP terms of service.'],
     '911': [False, 'A fatal error on our side such as a database outage. Retry the update no sooner than 30 minutes.']
 }
 
@@ -21,30 +28,42 @@ messages = {
 if len(sys.argv) > 1:
     config_file = sys.argv[1]
 else:
+    print('using default config file')
     config_file = 'noip.conf'
+print('config file: %s' % config_file)
 
 config = configparser.ConfigParser()
 config.read(config_file)
 
-client_name = 'RobertBarnesNoIpUpdater'
-client_version = '0.0.1'
-client_email = 'robertbarnes1981@googlemail.com'
+myip = None
 
 # get ip
 
-connection = http.client.HTTPSConnection('api.ipify.org');
-connection.request('GET', '/?format=json')
+get_ip_url = 'api.ipify.org'
+
+print('getting ip from: %s' % get_ip_url)
+
+get_ip_path = '/?format=json'
+
+connection = http.client.HTTPSConnection(get_ip_url);
+connection.request('GET', get_ip_path)
 response = connection.getresponse()
 
-myip = None
+print(response.status)
 
 if response.status == http.client.OK:
     data = json.loads(response.readall().decode('ascii'))
+    print(data)
+
     myip = data['ip']
 
 # update noip
 
 if myip != None:
+
+    set_ip_url = 'dynupdate.no-ip.com'
+
+    print('setting ip at: %s' % set_ip_url)
 
     username = config.get('noip', 'username')
     password = config.get('noip', 'password')
@@ -56,10 +75,10 @@ if myip != None:
 
     headers = {'User-Agent': user_agent, 'Authorization': 'Basic {authorization}'.format(authorization = authorization)}
 
-    url = '/nic/update?hostname={hostname}&myip={myip}'.format(hostname = hostname, myip = myip)
+    set_ip_path = '/nic/update?hostname={hostname}&myip={myip}'.format(hostname = hostname, myip = myip)
 
-    connection = http.client.HTTPSConnection('dynupdate.no-ip.com')
-    connection.request('GET', url, {}, headers)
+    connection = http.client.HTTPSConnection(set_ip_url)
+    connection.request('GET', set_ip_path, {}, headers)
     response = connection.getresponse()
 
     print(response.status)
