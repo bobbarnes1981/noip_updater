@@ -1,0 +1,10 @@
+#!/bin/sh
+
+/usr/bin/python /usr/bin/noip.py /etc/noip.conf
+
+#TODO:
+EXITVALUE=$?
+if [ $EXITVALUE != 0 ]; then
+    /usr/bin/logger -t noip-sync "ALERT exited abnormally with [$EXITVALUE]"
+fi
+exit 0
