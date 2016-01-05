@@ -32,6 +32,7 @@ class Ipify(object):
             data = json.loads(response.readall().decode('ascii'))
             print(data)
             return data['ip']
+
         return None
 
 class Noip(object):
@@ -78,6 +79,8 @@ class Noip(object):
             parts = data.split()
         
             return self.messages[parts[0]]
+
+        return Message(False, 'Http Error %s' % response.status, 999)
         
 print(Noip.client_name)
 print(Noip.client_version)
@@ -104,13 +107,16 @@ myip = Ipify('api.ipify.org').get_ip()
 
 # update noip
 
-if myip != None:
-    message = Noip('dynupdate.no-ip.com').update_ip(username, password, hostname, myip)
-    if message.success == True:
-        print('SUCCESS')
-    else:
-        print('FAILED')
+if myip == None:
+    sys.exit(999)
 
-    print(message.description)
-    sys.exit(message.exit_code)
+message = Noip('dynupdate.no-ip.com').update_ip(username, password, hostname, myip)
+
+if message.success == True:
+    print('SUCCESS')
+else:
+    print('FAILED')
+
+print(message.description)
+sys.exit(message.exit_code)
 
