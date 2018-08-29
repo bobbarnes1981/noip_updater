@@ -67,7 +67,7 @@ class Noip(object):
         path = '/nic/update?hostname={hostname}&myip={myip}'.format(hostname = hostname, myip = myip)
 
         connection = http.client.HTTPSConnection(self.url)
-        connection.request('GET', path, {}, headers)
+        connection.request('GET', path, None, headers)
         response = connection.getresponse()
 
         print(response.status)
