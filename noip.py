@@ -29,7 +29,7 @@ class Ipify(object):
         print(response.status)
 
         if response.status == http.client.OK:
-            data = json.loads(response.readall().decode('ascii'))
+            data = json.loads(response.read().decode('ascii'))
             print(data)
             return data['ip']
 
@@ -73,7 +73,7 @@ class Noip(object):
         print(response.status)
 
         if response.status == http.client.OK:
-            data = response.readall().decode('ascii')
+            data = response.read().decode('ascii')
             print(data)
     
             parts = data.split()
